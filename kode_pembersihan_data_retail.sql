@@ -29,11 +29,16 @@ UPDATE retail_customers
 SET no_hp = REGEXP_REPLACE(no_hp,'[^0-9]','');
 
 -- Tabel Retail Products
-UPDATE retail_products
-SET harga =(SELECT avg_harga
-    FROM(SELECT AVG(harga) AS avg_harga
-        FROM retail_products)x)
-WHERE harga IS NULL;
+UPDATE retail_products p
+JOIN (
+    -- Subquery untuk mencari rata-rata harga berdasarkan kategori
+    SELECT kategori, AVG(harga) AS avg_harga
+    FROM retail_products
+    WHERE harga IS NOT NULL
+    GROUP BY kategori
+) sub ON p.kategori = sub.kategori
+SET p.harga = sub.avg_harga
+WHERE p.harga IS NULL;
 
 -- Tabel Retail Transaction Items
 UPDATE retail_transaction_items
